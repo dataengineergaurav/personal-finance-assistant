@@ -1,0 +1,76 @@
+import asyncio
+import os
+import sys
+import argparse
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Project imports
+from database import ExpenseDatabase
+from agent import finance_agent
+from config.settings import settings
+
+async def main():
+    parser = argparse.ArgumentParser(description='Personal Finance Assistant')
+    parser.add_argument('--model', type=str, choices=['ollama', 'openai', 'gemini', 'google'],
+                      help='Model provider to use (overrides MODEL_PROVIDER env var)')
+    args = parser.parse_args()
+
+    # Domain models and services
+    try:
+        db = ExpenseDatabase()
+    except Exception as e:
+        print(f"❌ Database Error: {str(e)}")
+        sys.exit(1)
+
+    # Resolve Model
+    provider = args.model or settings.MODEL_PROVIDER
+    model = settings.get_model(provider)
+
+    print("=" * 60)
+    print("💰 Personal Finance Assistant (Domain-Driven Edition)")
+    print("=" * 60)
+    print(f"\n🤖 Provider: {provider.capitalize()}")
+    print("\nI can help you:\n"
+          "  • Track expenses           (e.g., 'I spent $15 on lunch')\n"
+          "  • View spending            (e.g., 'Show my food expenses')\n"
+          "  • Get expert advice        (e.g., 'Analyze my spending')\n"
+          "  • Budgeting plans          (e.g., 'Budget for $5000 income')\n")
+    print("Type 'quit' or 'exit' to end the session.\n")
+
+    history = []
+
+    while True:
+        try:
+            user_input = input("🗣️  You: ").strip()
+            if not user_input:
+                continue
+            if user_input.lower() in ['quit', 'exit', 'bye']:
+                print("\n👋 Stay financially healthy. Goodbye!")
+                break
+
+            # Execute Request
+            # We pass the pre-resolved model object to ensure correctness
+            result = await finance_agent.run(
+                user_input,
+                model=model,
+                deps=db,
+                message_history=history,
+                model_settings={'temperature': 0.0}
+            )
+
+            # Update conversation history
+            history = result.all_messages()
+            print(f"\n🤖 Assistant: {result.output}")
+
+        except KeyboardInterrupt:
+            print("\n👋 Goodbye!")
+            break
+        except Exception as e:
+            print(f"\n❌ Error: {str(e)}")
+            print("Please try again or type 'quit' to exit.")
+
+if __name__ == "__main__":
+    asyncio.run(main())
