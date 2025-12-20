@@ -1,6 +1,6 @@
 # 💰 Personal Finance Assistant (Domain-Driven Edition)
 
-A professional AI-powered expense tracking and financial insights agent built with **Pydantic AI** and **Supabase**. This agent leverages modern LLMs (**Google Gemini**, **OpenAI**, **Ollama**) to provide precise financial management through a natural language interface.
+A professional AI-powered expense tracking and financial insights agent built with **Pydantic AI** and **Supabase**. This agent leverages modern LLMs (**Ollama (Recommended)**, **Google Gemini**, **OpenAI**) to provide precise financial management through a natural language interface.
 
 ## 📁 Project Architecture
 
@@ -26,7 +26,7 @@ personal-finance-assistant/
 ### 1. Prerequisites
 - Python 3.12+
 - A Supabase account and project
-- API Keys for your preferred LLM provider (Gemini recommended)
+- API Keys for cloud LLM providers (Optional, Ollama recommended for local-first)
 
 ### 2. Environment Setup
 ```bash
@@ -49,9 +49,8 @@ Copy `.env.example` to `.env` and fill in your credentials:
 cp .env.example .env
 ```
 Key variables:
+- `MODEL_PROVIDER`: Default provider (`ollama` recommended, `gemini`, or `openai`).
 - `GEMINI_API_KEY`: Required for Google Gemini (Get from [Google AI Studio](https://aistudio.google.com/))
-- `SUPABASE_URL` & `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase project credentials.
-- `MODEL_PROVIDER`: Default provider (`gemini`, `openai`, or `ollama`).
 
 ---
 

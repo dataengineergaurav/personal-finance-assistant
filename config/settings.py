@@ -6,7 +6,7 @@ from pydantic_ai.models.openai import OpenAIChatModel
 
 class Settings:
     # Model Configuration
-    MODEL_PROVIDER = os.getenv('MODEL_PROVIDER', 'gemini').lower()
+    MODEL_PROVIDER = os.getenv('MODEL_PROVIDER', 'ollama').lower()
     OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'llama3.2')
     OLLAMA_BASE_URL = os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434/v1')
     OLLAMA_API_KEY = os.getenv('OLLAMA_API_KEY')
