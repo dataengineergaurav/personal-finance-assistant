@@ -1,5 +1,5 @@
 from typing import Optional
-from models import ExpenseCategory
+from core.models import ExpenseCategory
 
 class CategoryService:
     @staticmethod

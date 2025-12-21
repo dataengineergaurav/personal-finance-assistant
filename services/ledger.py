@@ -1,7 +1,7 @@
 from typing import List, Optional
 from datetime import datetime
-from models import Expense, ExpenseCategory
-from database import ExpenseDatabase
+from core.models import Expense, ExpenseCategory
+from data.database import ExpenseDatabase
 
 class LedgerService:
     def __init__(self, db: ExpenseDatabase):

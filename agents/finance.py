@@ -1,10 +1,10 @@
 from pydantic_ai import Agent, RunContext
-from database import ExpenseDatabase
+from data.database import ExpenseDatabase
 from services.ledger import LedgerService
 from services.advisor import AdvisorService
 from services.categories import CategoryService
 from prompts.persona import FINANCIAL_PERSONA, SUMMARY_TEMPLATE
-from config.settings import settings
+from core.settings import settings
 
 # Initialize the Professional Financial Assistant
 finance_agent = Agent(

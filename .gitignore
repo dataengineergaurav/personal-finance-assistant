@@ -15,6 +15,3 @@ dist/
 
 # VS Code
 .vscode/
-
-# Project specific
-setup_supabase.sql

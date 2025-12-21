@@ -1,5 +1,5 @@
 from typing import List
-from models import Expense, FinancialReport, BudgetReport
+from core.models import Expense, FinancialReport, BudgetReport
 
 class AdvisorService:
     @staticmethod

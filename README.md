@@ -56,16 +56,20 @@ Key variables:
 
 ## 🏃 Usage
 
-Launch the assistant using the CLI manager:
+Launch the agents using their respective CLI managers:
 
+### 1. Finance Clerk (Expense Tracking)
 ```bash
 # Use default provider (from .env)
-python run.py
+python run_clerk.py
 
 # Override with a specific provider
-python run.py --model google
-python run.py --model openai
-python run.py --model ollama
+python run_clerk.py --model gemini
+```
+
+### 2. Wealth Director (Strategic Advice)
+```bash
+python run_director.py
 ```
 
 ### 🗣️ Example Queries

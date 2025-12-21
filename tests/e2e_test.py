@@ -1,10 +1,10 @@
 import asyncio
 import os
-from database import ExpenseDatabase
-from agent import finance_agent
-from models import ExpenseCategory
+from data.database import ExpenseDatabase
+from agents.finance import finance_agent
+from core.models import ExpenseCategory
 from datetime import datetime
-from config.settings import settings
+from core.settings import settings
 
 async def test_end_to_end():
     print("🚀 Starting End-to-End Agent Test (Domain-Driven)...")

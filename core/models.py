@@ -51,3 +51,16 @@ class BudgetReport(BaseModel):
     wants: float
     savings: float
     advice: List[str]
+
+
+class StrategyResponse(BaseModel):
+    analysis: str
+    steps: List[str]
+    confidence_score: float
+
+
+class FinancialGoal(BaseModel):
+    name: str
+    target_amount: float
+    deadline: Optional[datetime] = None
+    priority: int = 1  # 1-5, 1 being highest

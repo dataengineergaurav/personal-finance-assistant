@@ -16,6 +16,9 @@ class Settings:
     # API Keys
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+
+    # Database Configuration
+    DATABASE_TYPE = os.getenv('DATABASE_TYPE', 'supabase').lower()
     
     @classmethod
     def get_model(cls, override_provider: str = None):
@@ -40,6 +43,18 @@ class Settings:
             return f'openai:{cls.OPENAI_MODEL}'
         else:
             return GoogleModel(cls.GEMINI_MODEL)
+
+    @classmethod
+    def get_db(cls):
+        """
+        Unified database selection.
+        """
+        if cls.DATABASE_TYPE == 'gsheet':
+            from data.gsheet import GoogleSheetDatabase
+            return GoogleSheetDatabase()
+        else:
+            from data.database import SupabaseDatabase
+            return SupabaseDatabase()
 
 # Global settings instance
 settings = Settings()

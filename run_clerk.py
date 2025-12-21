@@ -8,9 +8,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Project imports
-from database import ExpenseDatabase
-from agent import finance_agent
-from config.settings import settings
+from agents.finance import finance_agent
+from core.settings import settings
 
 async def main():
     parser = argparse.ArgumentParser(description='Personal Finance Assistant')
@@ -20,7 +19,7 @@ async def main():
 
     # Domain models and services
     try:
-        db = ExpenseDatabase()
+        db = settings.get_db()
     except Exception as e:
         print(f"❌ Database Error: {str(e)}")
         sys.exit(1)
