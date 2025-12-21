@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Project imports
+from data.database import ExpenseDatabase
 from agents.strategy import strategy_agent
 from core.settings import settings
 
@@ -19,7 +20,7 @@ async def main():
 
     # Domain models and services
     try:
-        db = settings.get_db()
+        db = ExpenseDatabase()
     except Exception as e:
         print(f"❌ Database Error: {str(e)}")
         sys.exit(1)

@@ -4,11 +4,10 @@ from datetime import datetime
 from dotenv import load_dotenv
 from supabase import create_client, Client
 from core.models import Expense, ExpenseCategory
-from data.base import BaseExpenseDatabase
 
 load_dotenv()
 
-class SupabaseDatabase(BaseExpenseDatabase):
+class ExpenseDatabase:
     def __init__(self):
         self.url = os.getenv("SUPABASE_URL")
         self.key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
