@@ -58,7 +58,15 @@ Key variables:
 
 Launch the agents using their respective CLI managers:
 
-### 1. Finance Clerk (Expense Tracking)
+### 1. Web Interface (Recommended)
+The new Pydantic AI built-in accessible web interface.
+```bash
+./start_ui.sh
+```
+- **API/Swagger UI**: `http://localhost:8000/docs`
+- **Chat Endpoint**: `POST /api/chat`
+
+### 2. Finance Clerk (CLI)
 ```bash
 # Use default provider (from .env)
 python run_clerk.py
@@ -67,9 +75,28 @@ python run_clerk.py
 python run_clerk.py --model gemini
 ```
 
-### 2. Wealth Director (Strategic Advice)
+### 3. Wealth Director (CLI)
 ```bash
 python run_director.py
+```
+
+---
+
+## 🔬 Observability & Evaluation (MLflow)
+
+This project integrates **MLflow** for end-to-end tracing and agent evaluation.
+
+### Running Evaluations
+Run the "golden set" of queries to regression test the agents:
+```bash
+python tests/evaluate_agents.py
+```
+
+### Viewing Traces
+Launch the MLflow UI to inspect agent reasoning, tool calls, and latency:
+```bash
+mlflow ui
+# Open http://127.0.0.1:5000
 ```
 
 ### 🗣️ Example Queries
@@ -78,6 +105,9 @@ python run_director.py
     - *"I spent $15 on a burger today"*
     - *"Paid $1200 for rent"*
     - *"Bought some groceries for $45.50"*
+- **Record Income**:
+    - *"My salary of $5000 arrived today"*
+    - *"Received a bonus of $500"*
 - **View History**:
     - *"Show my recent expenses"*
     - *"How much did I spend on food?"*
@@ -91,13 +121,15 @@ python run_director.py
 
 ## 🛠️ Agent Capabilities
 
-| Feature | Description |
-|---------|-------------|
-| **Smart Ledger** | Automatically maps natural language to categories (food, transport, shopping, etc.). |
-| **History Views** | Filter and view transaction records directly from Supabase. |
-| **Spending Insights** | Identifies top spending categories and provides actionable advice. |
-| **Budget Planning** | Generates professional allocation plans based on personalized income. |
-| **Multi-Model Support** | Seamlessly switch between local (Ollama) and cloud (Gemini, OpenAI) models. |
+|Feature|Description|
+|---|---|
+|**Smart Ledger**|Automatically maps natural language to categories (food, transport, shopping, etc.).|
+|**Income Tracking**|Record salary, bonuses, and deposits with precise source attribution.|
+|**History Views**|Filter and view transaction records directly from Supabase.|
+|**Spending Insights**|Identifies top spending categories and provides actionable advice.|
+|**Budget Planning**|Generates professional allocation plans based on personalized income.|
+|**Multi-Model Support**|Seamlessly switch between local (Ollama) and cloud (Gemini, OpenAI) models.|
+|**Observability**|Full MLflow integration for tracing agent thoughts and evaluating performance.|
 
 ---
 
