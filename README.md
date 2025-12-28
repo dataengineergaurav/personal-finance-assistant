@@ -8,15 +8,17 @@ The project follows a Domain-Driven Design (DDD) approach to ensure maintainabil
 
 ```txt
 personal-finance-assistant/
-├── services/           # Domain logic (Ledger, Advisor, Categories)
+├── agents/             # Agent definitions (Finance, Strategy)
+├── core/               # Core configurations and observability (Settings, MLflow)
+├── data/               # Data layer (Database connection)
 ├── prompts/            # Professional financial personas & templates
-├── config/             # Model and environment configurations
-├── database.py         # Supabase persistence layer
-├── agent.py            # AI Agent orchestration (Tools & Logic)
-├── run.py              # CLI Interactive session manager
-├── models.py           # Pydantic data models
+├── services/           # Domain logic (Ledger, Advisor, Categories)
+├── tests/              # Test suite (E2E, Evaluation)
+├── app.py              # Main Pydantic AI Web Application
+├── run_clerk.py        # CLI Entry point for Finance Clerk
+├── run_director.py     # CLI Entry point for Wealth Director
 ├── requirements.txt    # Project dependencies
-└── setup_supabase.sql  # Database schema definition
+└── start_ui.sh         # Script to launch the Web UI
 ```
 
 ---
