@@ -18,7 +18,7 @@ class Settings:
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
     # MLflow Configuration
-    MLFLOW_TRACKING_URI = os.getenv('MLFLOW_TRACKING_URI', 'mlruns')
+    MLFLOW_TRACKING_URI = os.getenv('MLFLOW_TRACKING_URI', 'sqlite:///mlflow.db')
     MLFLOW_EXPERIMENT_NAME = os.getenv('MLFLOW_EXPERIMENT_NAME', 'Personal Finance Assistant')
 
     @classmethod

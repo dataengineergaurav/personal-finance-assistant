@@ -16,4 +16,5 @@ dist/
 # VS Code
 .vscode/
 
-mlruns/
+mlflow.db
+mlruns

@@ -11,6 +11,7 @@ load_dotenv()
 from data.database import ExpenseDatabase
 from agents.finance import finance_agent
 from core.settings import settings
+from core.observability import track_agent_run, log_agent_result
 
 async def main():
     parser = argparse.ArgumentParser(description='Personal Finance Assistant')
@@ -35,6 +36,7 @@ async def main():
     print(f"\n🤖 Provider: {provider.capitalize()}")
     print("\nI can help you:\n"
           "  • Track expenses           (e.g., 'I spent $15 on lunch')\n"
+          "  • Record income            (e.g., 'Salary $5000 received')\n"
           "  • View spending            (e.g., 'Show my food expenses')\n"
           "  • Get expert advice        (e.g., 'Analyze my spending')\n"
           "  • Budgeting plans          (e.g., 'Budget for $5000 income')\n")
@@ -53,13 +55,15 @@ async def main():
 
             # Execute Request
             # We pass the pre-resolved model object to ensure correctness
-            result = await finance_agent.run(
-                user_input,
-                model=model,
-                deps=db,
-                message_history=history,
-                model_settings={'temperature': 0.0}
-            )
+            async with track_agent_run("Finance Clerk CLI", str(provider), {"query": user_input}):
+                result = await finance_agent.run(
+                    user_input,
+                    model=model,
+                    deps=db,
+                    message_history=history,
+                    model_settings={'temperature': 0.0}
+                )
+                log_agent_result(result.output)
 
             # Update conversation history
             history = result.all_messages()
