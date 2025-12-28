@@ -20,7 +20,7 @@ class ExpenseCategory(str, Enum):
     OTHER = "other"
 
 
-class Expense(BaseModel):
+class Transaction(BaseModel):
     id: Optional[int] = None
     type: TransactionType = TransactionType.EXPENSE
     amount: float = Field(gt=0, description="Amount (must be positive)")

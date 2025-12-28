@@ -1,9 +1,9 @@
 from typing import List
-from core.models import Expense, FinancialReport, BudgetReport
+from core.models import Transaction, FinancialReport, BudgetReport
 
 class AdvisorService:
     @staticmethod
-    def analyze_spending(expenses: List[Expense]) -> FinancialReport:
+    def analyze_spending(expenses: List[Transaction]) -> FinancialReport:
         """
         Analyze current spending and produce a financial report.
         """

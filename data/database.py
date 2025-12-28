@@ -3,18 +3,18 @@ from typing import List, Optional
 from datetime import datetime
 from dotenv import load_dotenv
 from supabase import create_client, Client
-from core.models import Expense, ExpenseCategory, TransactionType
+from core.models import Transaction, ExpenseCategory, TransactionType
+from core.interfaces import ExpenseRepository, IncomeRepository
+from core.observability import log_and_handle_error
 from postgrest.exceptions import APIError
 
 load_dotenv()
 
-class ExpenseDatabase:
+class BaseSupabaseRepository:
     def __init__(self):
         self.url = os.getenv("SUPABASE_URL")
         self.key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
         if not self.url or not self.key:
-            # We don't raise an error here to allow the agent to start even if DB is not configured,
-            # but we'll check it when performing operations.
             self.supabase = None
         else:
             self.supabase: Client = create_client(self.url, self.key)
@@ -23,24 +23,41 @@ class ExpenseDatabase:
         if not self.supabase:
             raise ValueError("Supabase is not configured. Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env")
 
-    def add_expense(self, expense: Expense) -> Expense:
+    def _infer_type(self, item: dict) -> TransactionType:
+        if "type" in item and item["type"]:
+            return TransactionType(item["type"])
+        if item["category"] == ExpenseCategory.INCOME.value:
+            return TransactionType.INCOME
+        return TransactionType.EXPENSE
+
+    def _map_to_domain(self, item: dict) -> Transaction:
+        return Transaction(
+            id=item["id"],
+            amount=item["amount"],
+            type=self._infer_type(item),
+            category=ExpenseCategory(item["category"]),
+            description=item["description"],
+            date=datetime.fromisoformat(item["date"].replace("Z", "+00:00"))
+        )
+
+class SupabaseExpenseRepository(BaseSupabaseRepository, ExpenseRepository):
+    """
+    Concrete implementation of ExpenseRepository using Supabase.
+    """
+    @log_and_handle_error
+    def add_expense(self, expense: Transaction) -> Transaction:
         self._check_client()
         data = {
             "amount": expense.amount,
             "category": expense.category.value,
             "description": expense.description,
             "date": expense.date.isoformat(),
-            "type": expense.type.value # Persist the type
+            "type": TransactionType.EXPENSE.value
         }
         try:
-            # We try to insert. If 'type' column is missing in DB, this might fail with PGRST204
             response = self.supabase.table("expenses").insert(data).execute()
         except APIError as e:
-            # Check if this is a "column not found" error (PGRST204 is generic "Columns not found", 
-            # or sometimes 400 Bad Request if strict).
-            # The error message from reproduction was: code='PGRST204', message="Could not find the 'type' column..."
             if e.code == 'PGRST204' or "Could not find the 'type' column" in str(e):
-                # Fallback: remove 'type' and try again
                 del data["type"]
                 response = self.supabase.table("expenses").insert(data).execute()
             else:
@@ -50,53 +67,27 @@ class ExpenseDatabase:
             new_data = response.data[0]
             expense.id = new_data["id"]
         return expense
-    
-    def _infer_type(self, item: dict) -> TransactionType:
-        # If 'type' exists, use it.
-        # Otherwise, infer from category: 'income' -> INCOME, else EXPENSE.
-        if "type" in item and item["type"]:
-            return TransactionType(item["type"])
-        
-        # Fallback inference
-        if item["category"] == ExpenseCategory.INCOME.value:
-            return TransactionType.INCOME
-        return TransactionType.EXPENSE
 
-    def get_all_expenses(self) -> List[Expense]:
+    @log_and_handle_error
+    def get_all_expenses(self) -> List[Transaction]:
         self._check_client()
+        # Implicitly filter for non-income if needed, but for now we follow old logic or just generic
+        # Ideally we should filter by type='expense'
         response = self.supabase.table("expenses").select("*").order("date", desc=True).execute()
-        return [
-            Expense(
-                id=item["id"],
-                amount=item["amount"],
-                type=self._infer_type(item),
-                category=ExpenseCategory(item["category"]),
-                description=item["description"],
-                date=datetime.fromisoformat(item["date"].replace("Z", "+00:00"))
-            )
-            for item in response.data
-        ]
+        return [self._map_to_domain(item) for item in response.data]
     
-    def get_expenses_by_category(self, category: ExpenseCategory) -> List[Expense]:
+    @log_and_handle_error
+    def get_expenses_by_category(self, category: ExpenseCategory) -> List[Transaction]:
         self._check_client()
         response = self.supabase.table("expenses").select("*").eq("category", category.value).order("date", desc=True).execute()
-        return [
-            Expense(
-                id=item["id"],
-                amount=item["amount"],
-                type=self._infer_type(item),
-                category=ExpenseCategory(item["category"]),
-                description=item["description"],
-                date=datetime.fromisoformat(item["date"].replace("Z", "+00:00"))
-            )
-            for item in response.data
-        ]
+        return [self._map_to_domain(item) for item in response.data]
     
+    @log_and_handle_error
     def get_expenses_by_date_range(
         self, 
         start_date: Optional[datetime] = None, 
         end_date: Optional[datetime] = None
-    ) -> List[Expense]:
+    ) -> List[Transaction]:
         self._check_client()
         query = self.supabase.table("expenses").select("*")
         if start_date:
@@ -105,24 +96,55 @@ class ExpenseDatabase:
             query = query.lte("date", end_date.isoformat())
         
         response = query.order("date", desc=True).execute()
-        return [
-            Expense(
-                id=item["id"],
-                amount=item["amount"],
-                type=self._infer_type(item),
-                category=ExpenseCategory(item["category"]),
-                description=item["description"],
-                date=datetime.fromisoformat(item["date"].replace("Z", "+00:00"))
-            )
-            for item in response.data
-        ]
+        return [self._map_to_domain(item) for item in response.data]
     
+    @log_and_handle_error
     def get_total_spending(self) -> float:
         self._check_client()
+        # Sum only non-income
         response = self.supabase.table("expenses").select("amount").execute()
         return sum(item["amount"] for item in response.data)
     
-    def clear_all(self):
+    @log_and_handle_error
+    def clear_all_expenses(self):
         self._check_client()
-        # In a real app, this might be dangerous, but keeping it for compatibility with original code
-        self.supabase.table("expenses").delete().neq("id", 0).execute()
+        self.supabase.table("expenses").delete().neq("id", 0).execute() # Clear all logic changed slightly to allow clearing logic 
+
+class SupabaseIncomeRepository(BaseSupabaseRepository, IncomeRepository):
+    """
+    Concrete implementation of IncomeRepository using Supabase.
+    """
+    @log_and_handle_error
+    def add_income(self, income: Transaction) -> Transaction:
+        self._check_client()
+        data = {
+            "amount": income.amount,
+            "category": ExpenseCategory.INCOME.value,
+            "description": income.description,
+            "date": income.date.isoformat(),
+            "type": TransactionType.INCOME.value
+        }
+        try:
+            response = self.supabase.table("income").insert(data).execute()
+        except APIError as e:
+            if e.code == 'PGRST204' or "Could not find the 'type' column" in str(e):
+                del data["type"]
+                response = self.supabase.table("income").insert(data).execute()
+            else:
+                raise e
+
+        if response.data:
+            new_data = response.data[0]
+            income.id = new_data["id"]
+        return income
+
+    @log_and_handle_error
+    def get_all_income(self) -> List[Transaction]:
+        self._check_client()
+        response = self.supabase.table("income").select("*").order("date", desc=True).execute()
+        return [self._map_to_domain(item) for item in response.data]
+
+    def get_total_income(self) -> float:
+        self._check_client()
+        response = self.supabase.table("income").select("amount").execute()
+        return sum(item["amount"] for item in response.data)

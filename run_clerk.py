@@ -8,8 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Project imports
-from data.database import ExpenseDatabase
-from agents.finance import finance_agent
+from core.container import get_dependencies, create_finance_agent
 from core.settings import settings
 from core.observability import track_agent_run, log_agent_result
 
@@ -21,7 +20,7 @@ async def main():
 
     # Domain models and services
     try:
-        db = ExpenseDatabase()
+        deps = get_dependencies()
     except Exception as e:
         print(f"❌ Database Error: {str(e)}")
         sys.exit(1)
@@ -56,10 +55,11 @@ async def main():
             # Execute Request
             # We pass the pre-resolved model object to ensure correctness
             async with track_agent_run("Finance Clerk CLI", str(provider), {"query": user_input}):
+                finance_agent = create_finance_agent()
                 result = await finance_agent.run(
                     user_input,
                     model=model,
-                    deps=db,
+                    deps=deps,
                     message_history=history,
                     model_settings={'temperature': 0.0}
                 )

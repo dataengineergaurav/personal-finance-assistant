@@ -1,17 +1,19 @@
 from pydantic_ai import Agent, RunContext
-from agents.finance import finance_agent
+from core.container import get_dependencies, create_finance_agent
 from agents.strategy import strategy_agent
-from data.database import ExpenseDatabase
+from core.interfaces import ExpenseRepository
+from core.dependencies import FinanceDependencies
 from core.settings import settings
 from core.observability import track_agent_run, log_agent_result
 
 # Initialize the database
+# Initialize the dependencies
 try:
-    db = ExpenseDatabase()
+    deps = get_dependencies()
 except Exception as e:
     print(f"Failed to initialize database: {e}")
     # Fallback to None or exit if critical, but for now we proceed/log
-    db = None
+    deps = None
 
 # Router Agent
 # This agent's sole purpose is to route the user's request to the correct sub-agent.
@@ -41,7 +43,7 @@ If the intent is clear, call the tool immediately.
 router_agent = Agent(
     model=settings.get_model(),
     system_prompt=ROUTER_SYSTEM_PROMPT,
-    deps_type=ExpenseDatabase
+    deps_type=FinanceDependencies
 )
 
 # Re-define router agent to not require deps in signature for this web layer
@@ -57,7 +59,8 @@ async def ask_finance_global(ctx: RunContext[None], query: str) -> str:
     Use this for: expense tracking, income recording, viewing cursor/transaction history, and reports.
     """
     async with track_agent_run("Finance Agent", str(settings.get_model()), {"query": query}):
-        result = await finance_agent.run(query, deps=db)
+        finance_agent = create_finance_agent()
+        result = await finance_agent.run(query, deps=deps)
         log_agent_result(result.output)
         return result.output
 
@@ -68,7 +71,7 @@ async def ask_strategy_global(ctx: RunContext[None], query: str) -> str:
     Use this for: financial advice, investment strategy, and goal planning.
     """
     async with track_agent_run("Strategy Agent", str(settings.get_model()), {"query": query}):
-        res = await strategy_agent.run(query, deps=db)
+        res = await strategy_agent.run(query, deps=deps)
         log_agent_result(str(res.data))
         return str(res.data)
 

@@ -1,52 +1,68 @@
 from typing import List, Optional
 from datetime import datetime
-from core.models import Expense, ExpenseCategory, TransactionType
-from data.database import ExpenseDatabase
+from core.models import Transaction, ExpenseCategory, TransactionType
+from core.interfaces import ExpenseRepository
+from data.database import SupabaseExpenseRepository # for type aliasing if needed, but better to just use interface
+
+
+from core.interfaces import ExpenseRepository, IncomeRepository
 
 class LedgerService:
-    def __init__(self, db: ExpenseDatabase):
-        self.db = db
+    def __init__(self, expense_repo: ExpenseRepository, income_repo: IncomeRepository):
+        self.expense_repo = expense_repo
+        self.income_repo = income_repo
 
-    def record_transaction(self, amount: float, category: ExpenseCategory, description: str) -> Expense:
+    def record_expense(self, amount: float, category: ExpenseCategory, description: str) -> Transaction:
         """
         Record a new EXPENSE transaction.
         """
-        expense = Expense(
+        expense = Transaction(
             amount=amount,
             category=category,
             description=description,
             type=TransactionType.EXPENSE,
             date=datetime.now()
         )
-        return self.db.add_expense(expense)
+        return self.expense_repo.add_expense(expense)
 
-    def record_income(self, amount: float, source: str, description: str) -> Expense:
+    def record_income(self, amount: float, source: str, description: str) -> Transaction:
         """
         Record a new INCOME transaction.
         """
-        income = Expense(
+        income = Transaction(
             amount=amount,
             category=ExpenseCategory.INCOME, # Use the generic INCOME category
             description=f"{source}: {description}",
             type=TransactionType.INCOME,
             date=datetime.now()
         )
-        return self.db.add_expense(income)
+        return self.income_repo.add_income(income)
 
-    def get_transaction_history(self, category: Optional[ExpenseCategory] = None) -> List[Expense]:
+    def get_transaction_history(self, category: Optional[ExpenseCategory] = None) -> List[Transaction]:
+        # If specific category (and not Income), get from expense repo
         if category:
-            return self.db.get_expenses_by_category(category)
-        return self.db.get_all_expenses()
+            if category == ExpenseCategory.INCOME:
+                return self.income_repo.get_all_income()
+            return self.expense_repo.get_expenses_by_category(category)
+        
+        # If all, get both and merge
+        expenses = self.expense_repo.get_all_expenses()
+        income = self.income_repo.get_all_income()
+        
+        # Merge and sort by date desc
+        all_tx = expenses + income
+        all_tx.sort(key=lambda x: x.date, reverse=True)
+        return all_tx
 
-    def calculate_total_spending(self, expenses: List[Expense]) -> float:
+    def calculate_total_spending(self, expenses: List[Transaction]) -> float:
         """Sum of EXPENSES only."""
         return sum(e.amount for e in expenses if e.type == TransactionType.EXPENSE)
 
-    def calculate_total_income(self, expenses: List[Expense]) -> float:
+    def calculate_total_income(self, expenses: List[Transaction]) -> float:
         """Sum of INCOME only."""
         return sum(e.amount for e in expenses if e.type == TransactionType.INCOME)
 
-    def format_history_report(self, category: Optional[ExpenseCategory], expenses: List[Expense]) -> str:
+    def format_history_report(self, category: Optional[ExpenseCategory], expenses: List[Transaction]) -> str:
         if not expenses:
             return f"No records found for {category.value if category else 'all categories'}."
 

@@ -1,6 +1,6 @@
 from pydantic_ai import Agent, RunContext
 from agents.finance import finance_agent
-from data.database import ExpenseDatabase
+from core.dependencies import FinanceDependencies
 from prompts.persona import STRATEGY_PERSONA
 from core.settings import settings
 from core.models import StrategyResponse
@@ -8,13 +8,14 @@ from core.models import StrategyResponse
 # Initialize the High-Level Wealth Strategy Agent
 strategy_agent = Agent(
     model=settings.get_model(),
-    deps_type=ExpenseDatabase,
+    deps_type=FinanceDependencies,
     system_prompt=STRATEGY_PERSONA,
-    output_type=StrategyResponse
+    output_type=StrategyResponse,
+    retries=3
 )
 
 @strategy_agent.tool
-async def query_finance_assistant(ctx: RunContext[ExpenseDatabase], query: str) -> str:
+async def query_finance_assistant(ctx: RunContext[FinanceDependencies], query: str) -> str:
     """
     Delegates a query to the Finance Assistant for data retrieval or expense recording.
     Use this for:
@@ -24,11 +25,12 @@ async def query_finance_assistant(ctx: RunContext[ExpenseDatabase], query: str) 
     - Generating budget plans
     """
     # We pass the same database dependency to the sub-agent
-    result = await finance_agent.run(query, deps=ctx.deps)
+    # And we must pass the model to ensure we don't fall back to default OpenAI
+    result = await finance_agent.run(query, deps=ctx.deps, model=ctx.model)
     return result.output
 
 @strategy_agent.tool
-def evaluate_goal_feasibility(ctx: RunContext[ExpenseDatabase], goal_name: str, amount: float) -> str:
+def evaluate_goal_feasibility(ctx: RunContext[FinanceDependencies], goal_name: str, amount: float) -> str:
     """
     Analyze if a specific financial goal is feasible based on current data.
     """

@@ -1,9 +1,18 @@
 
 import mlflow
 import time
+import asyncio
 from typing import Any, Optional, Dict
 from contextlib import asynccontextmanager
 from core.settings import settings
+
+import logging
+import traceback
+from functools import wraps
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 class MLflowTracker:
     _initialized = False
@@ -53,3 +62,29 @@ def log_agent_result(output: str, metadata: Optional[Dict[str, Any]] = None):
         if metadata:
             for k, v in metadata.items():
                 mlflow.log_param(f"meta_{k}", v)
+
+def log_and_handle_error(func):
+    """
+    Decorator to log exceptions with stack trace and return a friendly error message.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error in {func.__name__}: {str(e)}")
+            logger.error(traceback.format_exc())
+            return f"Error executing {func.__name__}: {str(e)}"
+    
+    @wraps(func)
+    async def async_wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error in {func.__name__}: {str(e)}")
+            logger.error(traceback.format_exc())
+            return f"Error executing {func.__name__}: {str(e)}"
+
+    if asyncio.iscoroutinefunction(func):
+        return async_wrapper
+    return wrapper
