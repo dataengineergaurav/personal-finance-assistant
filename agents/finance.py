@@ -16,9 +16,9 @@ finance_agent = Agent(
 @finance_agent.tool
 def add_expense(ctx: RunContext[ExpenseDatabase], amount: float, category: str, description: str) -> str:
     """
-    Record a new transaction in the ledger.
+    Record a new expense transaction.
     Args:
-        amount: The dollar amount spent.
+        amount: The dollar amount spent (positive number).
         category: Category of expense (food, transport, entertainment, etc.)
         description: Brief details of the purchase.
     """
@@ -36,9 +36,25 @@ def add_expense(ctx: RunContext[ExpenseDatabase], amount: float, category: str, 
         return f"Error recording transaction: {str(e)}"
 
 @finance_agent.tool
+def add_income(ctx: RunContext[ExpenseDatabase], amount: float, source: str, description: str = "") -> str:
+    """
+    Record a new income (deposit, salary, etc.).
+    Args:
+        amount: The dollar amount earned (positive number).
+        source: Source of income (Salary, Freelance, Gift, etc.)
+        description: Optional details.
+    """
+    ledger = LedgerService(ctx.deps)
+    try:
+        income = ledger.record_income(amount, source, description)
+        return f"💰 Income Recorded: +${income.amount:.2f} from {source}"
+    except Exception as e:
+        return f"Error recording income: {str(e)}"
+
+@finance_agent.tool
 def view_history(ctx: RunContext[ExpenseDatabase], category_name: str = "all") -> str:
     """
-    Retrieve and format the transaction history.
+    Retrieve and format the transaction history (Income and Expenses).
     Args:
         category_name: Optional category to filter by (or 'all').
     """

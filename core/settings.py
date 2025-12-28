@@ -17,6 +17,10 @@ class Settings:
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
+    # MLflow Configuration
+    MLFLOW_TRACKING_URI = os.getenv('MLFLOW_TRACKING_URI', 'mlruns')
+    MLFLOW_EXPERIMENT_NAME = os.getenv('MLFLOW_EXPERIMENT_NAME', 'Personal Finance Assistant')
+
     @classmethod
     def get_model(cls, override_provider: str = None):
         """

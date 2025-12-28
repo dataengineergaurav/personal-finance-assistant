@@ -3,7 +3,8 @@ from typing import List, Optional
 from datetime import datetime
 from dotenv import load_dotenv
 from supabase import create_client, Client
-from core.models import Expense, ExpenseCategory
+from core.models import Expense, ExpenseCategory, TransactionType
+from postgrest.exceptions import APIError
 
 load_dotenv()
 
@@ -28,14 +29,39 @@ class ExpenseDatabase:
             "amount": expense.amount,
             "category": expense.category.value,
             "description": expense.description,
-            "date": expense.date.isoformat()
+            "date": expense.date.isoformat(),
+            "type": expense.type.value # Persist the type
         }
-        response = self.supabase.table("expenses").insert(data).execute()
+        try:
+            # We try to insert. If 'type' column is missing in DB, this might fail with PGRST204
+            response = self.supabase.table("expenses").insert(data).execute()
+        except APIError as e:
+            # Check if this is a "column not found" error (PGRST204 is generic "Columns not found", 
+            # or sometimes 400 Bad Request if strict).
+            # The error message from reproduction was: code='PGRST204', message="Could not find the 'type' column..."
+            if e.code == 'PGRST204' or "Could not find the 'type' column" in str(e):
+                # Fallback: remove 'type' and try again
+                del data["type"]
+                response = self.supabase.table("expenses").insert(data).execute()
+            else:
+                raise e
+
         if response.data:
             new_data = response.data[0]
             expense.id = new_data["id"]
         return expense
     
+    def _infer_type(self, item: dict) -> TransactionType:
+        # If 'type' exists, use it.
+        # Otherwise, infer from category: 'income' -> INCOME, else EXPENSE.
+        if "type" in item and item["type"]:
+            return TransactionType(item["type"])
+        
+        # Fallback inference
+        if item["category"] == ExpenseCategory.INCOME.value:
+            return TransactionType.INCOME
+        return TransactionType.EXPENSE
+
     def get_all_expenses(self) -> List[Expense]:
         self._check_client()
         response = self.supabase.table("expenses").select("*").order("date", desc=True).execute()
@@ -43,6 +69,7 @@ class ExpenseDatabase:
             Expense(
                 id=item["id"],
                 amount=item["amount"],
+                type=self._infer_type(item),
                 category=ExpenseCategory(item["category"]),
                 description=item["description"],
                 date=datetime.fromisoformat(item["date"].replace("Z", "+00:00"))
@@ -57,6 +84,7 @@ class ExpenseDatabase:
             Expense(
                 id=item["id"],
                 amount=item["amount"],
+                type=self._infer_type(item),
                 category=ExpenseCategory(item["category"]),
                 description=item["description"],
                 date=datetime.fromisoformat(item["date"].replace("Z", "+00:00"))
@@ -81,6 +109,7 @@ class ExpenseDatabase:
             Expense(
                 id=item["id"],
                 amount=item["amount"],
+                type=self._infer_type(item),
                 category=ExpenseCategory(item["category"]),
                 description=item["description"],
                 date=datetime.fromisoformat(item["date"].replace("Z", "+00:00"))
