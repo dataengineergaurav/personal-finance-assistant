@@ -5,7 +5,6 @@ import asyncpg
 import asyncio
 import os
 from data.database import SupabaseExpenseRepository, SupabaseIncomeRepository
-from agents.finance import finance_agent
 from pydantic_ai import Agent
 
 class Container:
@@ -57,5 +56,10 @@ def create_finance_agent(model_override: str = None) -> Agent:
     """
     Factory to create a configured Finance Agent.
     """
-    # model = settings.get_model(model_override) # Model passed to run method usually
+    from agents.finance import finance_agent
+    
+    # Configure the model from settings
+    model = settings.get_model(model_override)
+    finance_agent.model = model
+    
     return finance_agent

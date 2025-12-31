@@ -56,7 +56,13 @@ class Settings:
         provider = (override_provider or self.MODEL_PROVIDER).lower()
         
         if provider in ['gemini', 'google']:
-            return GoogleModel(self.GEMINI_MODEL)
+            api_key = self.GEMINI_API_KEY or os.getenv('GOOGLE_API_KEY')
+            if not api_key:
+                # We return a string here to let Pydantic AI try to find it in the env
+                # but it's better to be explicit.
+                return GoogleModel(self.GEMINI_MODEL)
+            return GoogleModel(self.GEMINI_MODEL, api_key=api_key)
+            
         elif provider == 'ollama':            
             base_url = self.OLLAMA_BASE_URL
             if 'ollama.com' in base_url.lower() and not base_url.endswith('/v1'):
@@ -67,10 +73,16 @@ class Settings:
                 api_key=self.OLLAMA_API_KEY
             )
             return OpenAIChatModel(self.OLLAMA_MODEL, provider=provider_inst)
+            
         elif provider == 'openai':
+            if self.OPENAI_API_KEY:
+                return OpenAIChatModel(self.OPENAI_MODEL, api_key=self.OPENAI_API_KEY)
             return f'openai:{self.OPENAI_MODEL}'
+            
         else:
-            return GoogleModel(self.GEMINI_MODEL)
+            # Default fallback to Gemini
+            api_key = self.GEMINI_API_KEY or os.getenv('GOOGLE_API_KEY')
+            return GoogleModel(self.GEMINI_MODEL, api_key=api_key)
 
 # Global settings instance
 settings = Settings()
