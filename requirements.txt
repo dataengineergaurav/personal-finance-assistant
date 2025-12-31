@@ -12,3 +12,6 @@ mlflow
 pandas
 streamlit
 plotly
+Pillow
+watchdog
+asyncpg
