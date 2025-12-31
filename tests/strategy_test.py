@@ -1,11 +1,11 @@
 import asyncio
-from data.database import ExpenseDatabase
+from core.container import Container
 from agents.strategy import strategy_agent
 from pydantic_ai.models.test import TestModel
-from core.models import StrategyResponse
+from application.dtos.strategy_response import StrategyResponse
 
 async def test_communication():
-    db = ExpenseDatabase()
+    deps = Container.get_finance_dependencies()
     
     # We use a TestModel to mock the LLM response
     # This ensures the logic (tool calling) is tested without real API calls

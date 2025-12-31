@@ -3,7 +3,7 @@ from agents.finance import finance_agent
 from core.dependencies import FinanceDependencies
 from prompts.persona import STRATEGY_PERSONA
 from core.settings import settings
-from core.models import StrategyResponse
+from application.dtos.strategy_response import StrategyResponse
 
 # Initialize the High-Level Wealth Strategy Agent
 strategy_agent = Agent(

@@ -1,9 +1,9 @@
 from typing import Optional
-from core.models import ExpenseCategory
+from finance.models.enums import TransactionCategory
 
 class CategoryService:
     @staticmethod
-    def map_to_category(text: str) -> ExpenseCategory:
+    def map_to_category(text: str) -> TransactionCategory:
         """
         Professional mapping of natural language to financial categories.
         """
@@ -22,6 +22,6 @@ class CategoryService:
 
         for category, keywords in mappings.items():
             if any(kw in text for kw in keywords):
-                return ExpenseCategory(category)
+                return TransactionCategory(category)
         
-        return ExpenseCategory.OTHER
+        return TransactionCategory.OTHER

@@ -9,7 +9,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from agents.finance import finance_agent
-from data.database import ExpenseDatabase
+from core.container import Container
 from core.settings import settings
 
 # Test Dataset
@@ -33,12 +33,12 @@ EVAL_QUESTIONS = [
 async def run_evaluation():
     print(f"Starting evaluation run: {settings.MLFLOW_EXPERIMENT_NAME}")
     
-    # Initialize DB (Mock or Real - using Real for now as per env)
+    # Initialize dependencies
     try:
-        db = ExpenseDatabase()
-    except:
-        print("Warning: DB Init failed, some tests may error.")
-        db = None
+        deps = Container.get_finance_dependencies()
+    except Exception as e:
+        print(f"Warning: Dependency Init failed: {e}")
+        deps = None
 
     mlflow.set_tracking_uri(settings.MLFLOW_TRACKING_URI)
     mlflow.set_experiment(settings.MLFLOW_EXPERIMENT_NAME)
@@ -53,7 +53,7 @@ async def run_evaluation():
             try:
                 # Direct agent call for eval simplicity, bypassing router for now
                 # In a real e2e, we might test the router too.
-                result = await finance_agent.run(question, deps=db)
+                result = await finance_agent.run(question, deps=deps)
                 # Finance agent is untyped, so result is in .output
                 output = result.output
                 

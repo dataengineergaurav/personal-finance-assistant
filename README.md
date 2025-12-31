@@ -8,16 +8,18 @@ The project follows a Domain-Driven Design (DDD) approach to ensure maintainabil
 
 ```txt
 personal-finance-assistant/
-├── agents/             # Agent definitions (Finance, Strategy)
+├── agents/             # Agent definitions (Finance, Strategy, Data Engineer)
 ├── core/               # Core configurations and observability (Settings, MLflow)
-├── data/               # Data layer (Database connection)
+├── data/               # Data layer (Supabase Repositories, Migrations)
+├── finance/            # Central Finance Package
+│   ├── models/         # Domain Models (Transaction, Reports)
+│   ├── services/       # Domain Services (Ledger, Advisor, Categories)
+│   └── repositories/   # Repository Protocols
 ├── prompts/            # Professional financial personas & templates
-├── services/           # Domain logic (Ledger, Advisor, Categories)
-├── tests/              # Test suite (E2E, Evaluation)
+├── tests/              # Test suite (E2E, Evaluation, Structural)
 ├── app.py              # Main Pydantic AI Web Application
 ├── run_clerk.py        # CLI Entry point for Finance Clerk
 ├── run_director.py     # CLI Entry point for Wealth Director
-├── requirements.txt    # Project dependencies
 └── start_ui.sh         # Script to launch the Web UI
 ```
 
@@ -42,7 +44,7 @@ pip install -r requirements.txt
 
 ### 3. Database Configuration
 1. Create a new project in [Supabase](https://supabase.com/).
-2. Run the SQL provided in `setup_supabase.sql` in the Supabase SQL Editor to create the `expenses` table.
+2. Run the SQL provided in `data/setup.sql` in the Supabase SQL Editor to create the `expenses` and `income` tables.
 3. Obtain your `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` from the project settings.
 
 ### 4. Configuration
@@ -80,6 +82,12 @@ python run_clerk.py --model gemini
 ### 3. Wealth Director (CLI)
 ```bash
 python run_director.py
+```
+
+### 4. Interactive Streamlit Dashboard (New)
+A modern web interface with chat and spending visualizations.
+```bash
+streamlit run streamlit_app.py
 ```
 
 ---
@@ -146,5 +154,5 @@ The assistant automatically maps your spending to these standard financial categ
 
 Run the end-to-end agent test suite to verify the integration:
 ```bash
-python test_agent_e2e.py
+python tests/e2e_test.py
 ```

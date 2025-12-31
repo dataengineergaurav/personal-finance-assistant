@@ -1,5 +1,5 @@
 from pydantic_ai import Agent, RunContext
-from core.container import get_dependencies, create_finance_agent
+from core.container import Container, create_finance_agent
 from agents.strategy import strategy_agent
 from core.interfaces import ExpenseRepository
 from core.dependencies import FinanceDependencies
@@ -9,7 +9,7 @@ from core.observability import track_agent_run, log_agent_result
 # Initialize the database
 # Initialize the dependencies
 try:
-    deps = get_dependencies()
+    deps = Container.get_finance_dependencies()
 except Exception as e:
     print(f"Failed to initialize database: {e}")
     # Fallback to None or exit if critical, but for now we proceed/log

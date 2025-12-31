@@ -1,8 +1,8 @@
 import asyncio
 import os
-from data.database import ExpenseDatabase
+from core.container import Container
 from agents.finance import finance_agent
-from core.models import ExpenseCategory
+from finance.models.enums import TransactionCategory
 from datetime import datetime
 from core.settings import settings
 
@@ -23,7 +23,7 @@ async def test_end_to_end():
     model = settings.get_model(provider)
     print(f"🤖 Testing with provider: {provider}")
 
-    db = ExpenseDatabase()
+    deps = Container.get_finance_dependencies()
     
     # 2. Test Add Expense
     test_desc = f"Agent Test {datetime.now().strftime('%H:%M:%S')}"
@@ -34,14 +34,14 @@ async def test_end_to_end():
     result = await finance_agent.run(
         user_input, 
         model=model,
-        deps=db,
+        deps=deps,
         model_settings={'temperature': 0.0}
     )
     
     print(f"🤖 Assistant: {result.output}")
     
     # Verify in DB
-    expenses = db.get_expenses_by_category(ExpenseCategory.SHOPPING)
+    expenses = deps.expense_repo.list_by_category(TransactionCategory.SHOPPING)
     found = any(e.description == test_desc and e.amount == 12.34 for e in expenses)
     
     if found:
@@ -54,7 +54,7 @@ async def test_end_to_end():
     result = await finance_agent.run(
         "Show my shopping expenses", 
         model=model,
-        deps=db,
+        deps=deps,
         model_settings={'temperature': 0.0}
     )
     print(f"🤖 Assistant: {result.output}")

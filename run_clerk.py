@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Project imports
-from core.container import get_dependencies, create_finance_agent
+from core.container import Container, create_finance_agent
 from core.settings import settings
 from core.observability import track_agent_run, log_agent_result
 
@@ -20,7 +20,7 @@ async def main():
 
     # Domain models and services
     try:
-        deps = get_dependencies()
+        deps = Container.get_finance_dependencies()
     except Exception as e:
         print(f"❌ Database Error: {str(e)}")
         sys.exit(1)

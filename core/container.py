@@ -25,6 +25,13 @@ class Container:
         return cls._finance_deps
 
     @classmethod
+    def reset_dependencies(cls):
+        """
+        Clear the cached dependencies to force re-initialization.
+        """
+        cls._finance_deps = None
+
+    @classmethod
     async def get_db_pool(cls):
         if not cls._db_pool:
             # Requires native connection string (not REST URL)

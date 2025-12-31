@@ -65,7 +65,9 @@ def log_agent_result(output: str, metadata: Optional[Dict[str, Any]] = None):
 
 def log_and_handle_error(func):
     """
-    Decorator to log exceptions with stack trace and return a friendly error message.
+    Decorator to log exceptions with stack trace.
+    It re-raises the exception after logging to avoid breaking data contracts
+    (e.g., returning a string when a list is expected).
     """
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -74,7 +76,7 @@ def log_and_handle_error(func):
         except Exception as e:
             logger.error(f"Error in {func.__name__}: {str(e)}")
             logger.error(traceback.format_exc())
-            return f"Error executing {func.__name__}: {str(e)}"
+            raise e
     
     @wraps(func)
     async def async_wrapper(*args, **kwargs):
@@ -83,7 +85,7 @@ def log_and_handle_error(func):
         except Exception as e:
             logger.error(f"Error in {func.__name__}: {str(e)}")
             logger.error(traceback.format_exc())
-            return f"Error executing {func.__name__}: {str(e)}"
+            raise e
 
     if asyncio.iscoroutinefunction(func):
         return async_wrapper

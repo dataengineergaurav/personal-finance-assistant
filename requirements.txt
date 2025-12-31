@@ -10,3 +10,5 @@ pydantic-ai-slim[web]
 uvicorn
 mlflow
 pandas
+streamlit
+plotly

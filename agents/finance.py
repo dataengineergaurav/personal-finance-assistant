@@ -1,9 +1,9 @@
 from pydantic_ai import Agent, RunContext
-from core.interfaces import ExpenseRepository, IncomeRepository
+from finance.repositories.transaction_repository import TransactionRepository
 from core.dependencies import FinanceDependencies
-from services.ledger import LedgerService
-from services.advisor import AdvisorService
-from services.categories import CategoryService
+from finance.services.ledger import LedgerService
+from finance.services.advisor import AdvisorService
+from finance.services.categories import CategoryService
 from core.observability import log_and_handle_error
 from prompts.persona import FINANCIAL_PERSONA, SUMMARY_TEMPLATE
 from core.settings import settings

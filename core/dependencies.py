@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Any
-from core.interfaces import ExpenseRepository, IncomeRepository
+from finance.repositories.transaction_repository import TransactionRepository
 
 @dataclass
 class FinanceDependencies:
@@ -8,8 +8,8 @@ class FinanceDependencies:
     Aggregates all dependencies required by the Finance Domain logic.
     Using this explicitly makes it clear what the agent needs.
     """
-    expense_repo: ExpenseRepository
-    income_repo: IncomeRepository
+    expense_repo: TransactionRepository
+    income_repo: TransactionRepository
 
 @dataclass
 class DataEngineDependencies:
