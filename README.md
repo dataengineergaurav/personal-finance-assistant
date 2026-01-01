@@ -28,18 +28,19 @@ personal-finance-assistant/
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
+- [uv](https://docs.astral.sh/uv/) (Recommended)
 - Python 3.12+
 - A Supabase account and project
 - API Keys for cloud LLM providers (Optional, Ollama recommended for local-first)
 
 ### 2. Environment Setup
 ```bash
-# Create and activate virtual environment
-python3.12 -m venv .venv
-source .venv/bin/activate
+# Clone the repository
+git clone <repo-url>
+cd personal-finance-assistant
 
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies and setup environment
+uv sync
 ```
 
 ### 3. Database Configuration
@@ -60,34 +61,25 @@ Key variables:
 
 ## 🏃 Usage
 
-Launch the agents using their respective CLI managers:
+Launch the agents using the provided `Makefile` shortcuts (powered by `uv`):
 
-### 1. Web Interface (Recommended)
-The new Pydantic AI built-in accessible web interface.
+### 1. Web Interface (Pydantic AI)
+The built-in web interface with API documentation.
 ```bash
-./start_ui.sh
+make ui
 ```
 - **API/Swagger UI**: `http://localhost:8000/docs`
-- **Chat Endpoint**: `POST /api/chat`
 
 ### 2. Finance Clerk (CLI)
+Natural language expense and income tracking.
 ```bash
-# Use default provider (from .env)
-python run_clerk.py
-
-# Override with a specific provider
-python run_clerk.py --model gemini
+make clerk
 ```
 
 ### 3. Wealth Director (CLI)
+Long-term financial planning and strategy.
 ```bash
-python run_director.py
-```
-
-### 4. Interactive Streamlit Dashboard (New)
-A modern web interface with chat and spending visualizations.
-```bash
-streamlit run streamlit_app.py
+make director
 ```
 
 ---
@@ -97,16 +89,15 @@ streamlit run streamlit_app.py
 This project integrates **MLflow** for end-to-end tracing and agent evaluation.
 
 ### Running Evaluations
-Run the "golden set" of queries to regression test the agents:
 ```bash
-python tests/evaluate_agents.py
+make test
 ```
 
 ### Viewing Traces
 Launch the MLflow UI to inspect agent reasoning, tool calls, and latency:
 ```bash
-mlflow ui
-# Open http://127.0.0.1:5000
+make mlflow
+# Open http://127.0.0.1:5001
 ```
 
 ### 🗣️ Example Queries

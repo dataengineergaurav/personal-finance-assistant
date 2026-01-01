@@ -18,7 +18,7 @@ help: ## Show this help message
 
 .PHONY: install
 install: ## Install project dependencies
-	$(PIP) install -r requirements.txt
+	uv sync
 	@echo "Dependencies installed."
 
 .PHONY: clean
@@ -33,29 +33,29 @@ clean: ## Remove temporary build and cache artifacts
 
 .PHONY: ui
 ui: ## Launch the Wealth OS Streamlit Terminal
-	$(STREAMLIT) run $(APP_ENTRY)
+	uv run streamlit run $(APP_ENTRY)
 
 .PHONY: clerk
-clerk: ## Run the CLI Clerk Agent (Ollama)
-	$(PYTHON) run_clerk.py --model ollama
+clerk: ## Run the CLI Clerk Agent
+	uv run python run_clerk.py
 
 .PHONY: director
-director: ## Run the CLI Director Agent (Ollama)
-	$(PYTHON) run_director.py --model ollama
+director: ## Run the CLI Director Agent
+	uv run python run_director.py
 
 # --- Observability & QA ---
 
 .PHONY: mlflow
 mlflow: ## Launch MLflow Tracking UI
-	mlflow ui --port 5001
+	uv run mlflow ui --port 5001
 
 .PHONY: test
 test: ## Run suite of unit and strategy tests
-	pytest tests/
+	uv run pytest tests/
 
 .PHONY: lint
 lint: ## Run syntax and static analysis audit
-	$(PYTHON) -m py_compile $(APP_ENTRY) run_clerk.py run_director.py core/*.py finance/*.py
+	uv run python -m py_compile $(APP_ENTRY) run_clerk.py run_director.py core/*.py finance/*.py
 	@echo "Audit passed."
 
 # --- Deployment ---
