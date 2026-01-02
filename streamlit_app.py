@@ -293,8 +293,8 @@ elif nav == "🛡️ SYSTEM SECURITY":
         c1, c2 = st.columns(2)
         with c1:
             st.subheader("Data Storage (Supabase)")
-            sb_url = st.text_input("VALULT URL", value=os.getenv("SUPABASE_URL", ""))
-            sb_key = st.text_input("AES KEY", value=os.getenv("SUPABASE_SERVICE_ROLE_KEY", ""), type="password")
+            sb_url = st.text_input("VAULT URL", value=os.getenv("SUPABASE_URL", ""))
+            sb_key = st.text_input("VAULT ROLE KEY", value=os.getenv("SUPABASE_SERVICE_ROLE_KEY", ""), type="password")
         
         with c2:
             st.subheader("Inference Engine")
