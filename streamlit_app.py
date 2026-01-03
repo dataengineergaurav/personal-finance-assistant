@@ -373,4 +373,4 @@ elif nav == "🧪 DATA LAB":
                 st.error(f"SEEDING FAILED: {e}")
 
 st.markdown("---")
-st.caption("© 2025 Wealth OS Terminal | Distributed Computing | SEC-C Compliant Aesthetics")
+st.caption("© 2025 Wealth OS Terminal | Email: ggurjar333@gmail.com")
