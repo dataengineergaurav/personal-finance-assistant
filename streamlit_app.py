@@ -147,8 +147,8 @@ with st.sidebar:
 
     with st.expander("👤 ARCHITECT PROFILE"):
         st.caption("**Lead Architect:** Gaurav Gurjar")
-        st.caption("**Uplink:** ggurjar333@gmail.com")
-        st.caption("**Status:** Institutional Agent")
+        st.caption("**Email:** ggurjar333@gmail.com")
+        st.caption("**Status:** Cross Domain Communicator")
 
 # --- GLOBAL HEADER UTILITY ---
 def render_terminal_header(title, subtitle):
